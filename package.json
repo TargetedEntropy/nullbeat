@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "mindflayer": "^0.1.0-alpha.1",
+    "mineflayer": "^4.8.1"
+  }
+}
