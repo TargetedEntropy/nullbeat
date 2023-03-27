@@ -7,7 +7,7 @@ const { GoalNear, GoalBlock, GoalXZ, GoalY, GoalInvert, GoalFollow } = require('
 const mcData = require('minecraft-data')("1.12.2")
 const colors = require("colors")
 const Discord = require("discord.js");
-const prettyMilliseconds = require("pretty-ms");
+// const prettyMilliseconds = require("pretty-ms");
 var tpsPlugin = require('mineflayer-tps')(mineflayer)
 const fetch = require('node-fetch')
 const roundToHundredth = (value) => {
@@ -16,19 +16,24 @@ const roundToHundredth = (value) => {
 const fs = require("fs");
 
 let options = {
-    host: `80.241.218.27`,//TODO replace with 0b0t ip address
+    // host: `80.241.218.27`,//TODO replace with 0b0t ip address
+    host: `10.0.0.39`,
     port: 25565,
     username: `${config.email}`,
-    password: `${config.password}`,
+    auth: 'microsoft',
     version: `1.12.2`
   }
   const bot = mineflayer.createBot(options);
   bindEvents(bot)
   function bindEvents(bot) {
 
-    const client = new Discord.Client({
-        disableEveryone: true
-    });
+    // const client = new Discord.Client({
+    //     disableEveryone: true
+    // });
+    const client = new Discord.Client({ intents: [
+        Discord.GatewayIntentBits.Guilds,
+        Discord.GatewayIntentBits.GuildMessages
+      ]});    
     client.commands = new Discord.Collection();
     client.on("ready", () => {
         console.log('Bridge online!'.blue);
@@ -202,88 +207,88 @@ bot.on('chat', (username, message) => {
 //=================
 // Help Command
 //=================
-if (cmd === `${prefix}help`) {
-      bot.chat(`: ${username}, https://mrfast-js.github.io/`)
-      log(`${prefix}help was used.`, 0xFFA500, username)
-  }
+// if (cmd === `${prefix}help`) {
+//       bot.chat(`: ${username}, https://mrfast-js.github.io/`)
+//       log(`${prefix}help was used.`, 0xFFA500, username)
+//   }
 //=================
 // Kits Command
 //=================
-if (cmd === `${prefix}kits`) {
-  bot.chat(`: ${username}, Current kits are: wtf, redstone, arik, teeleel, gspot, fix, gnome.`)
-  log(`${prefix}kits was used.`, 0xFFA500, username)
-}
+// if (cmd === `${prefix}kits`) {
+//   bot.chat(`: ${username}, Current kits are: wtf, redstone, arik, teeleel, gspot, fix, gnome.`)
+//   log(`${prefix}kits was used.`, 0xFFA500, username)
+// }
 //=================
 // Kill Command
 //=================
-if (cmd === `${prefix}kill`) {
-  if (array.includes(username)) {
-      bot.chat(`/kill`)
-      log(`${prefix}kill was used.`, 0xFF4500, username)
-  }}
+// if (cmd === `${prefix}kill`) {
+//   if (array.includes(username)) {
+//       bot.chat(`/kill`)
+//       log(`${prefix}kill was used.`, 0xFF4500, username)
+//   }}
 //=================
 // tps Command
 //=================
-if (cmd === `${prefix}tps`) {
-  bot.chat(`: Current tps: ${bot.getTps()}.`)
-}
+// if (cmd === `${prefix}tps`) {
+//   bot.chat(`: Current tps: ${bot.getTps()}.`)
+// }
 //=================
 // tps Command
 //=================
-if (cmd === `${prefix}sex`) {
-  if (!args[1]) return bot.chat(': You didnt specify a player')
-  bot.chat(`: ${username} just sexxed ${args[1]}!`)
-}
+// if (cmd === `${prefix}sex`) {
+//   if (!args[1]) return bot.chat(': You didnt specify a player')
+//   bot.chat(`: ${username} just sexxed ${args[1]}!`)
+// }
 //=================
 // 2bqueue Command
 //=================
-if (cmd ===`${prefix}2bqueue`) {
-  let queuefetch = fetch('https://2b2t.io/api/queue?last=true')
-  .then(res => res.json()).then(res => bot.chat(`: 2b2t queue: ${res[0][1]}.`))
-  let prioqueuefetch = fetch('https://2b2t.io/api/prioqueue?last=true')
-  .then(res => res.json()).then(res => bot.chat(`: 2b2t prioq: ${res[0][1]}.`))
-}
+// if (cmd ===`${prefix}2bqueue`) {
+//   let queuefetch = fetch('https://2b2t.io/api/queue?last=true')
+//   .then(res => res.json()).then(res => bot.chat(`: 2b2t queue: ${res[0][1]}.`))
+//   let prioqueuefetch = fetch('https://2b2t.io/api/prioqueue?last=true')
+//   .then(res => res.json()).then(res => bot.chat(`: 2b2t prioq: ${res[0][1]}.`))
+// }
 //=================
 // Ping Command
 //=================s
-if (cmd === `${prefix}ping`) {
-  if (!args[1]) {
-    if (!bot.players[username]) return;
-  if (bot.players[username].ping == '0') return bot.chat(': '+username +`'s ping hasnt been calculated by the server yet.`)
-  bot.chat(`: ${username}'s ping is ${bot.players[username].ping}ms`)
-  log(`${prefix}ping was used.`, 0xFFA500, username)
-  } else {
-    if (!bot.players[args[1]]) return bot.chat(': Player not found!')
-    if (bot.players[args[1]].ping == '0') return bot.chat(': '+args[1] +`'s ping hasnt been calculated by the server yet.`)
-    bot.chat(`: ${args[1]}'s ping is ${bot.players[args[1]].ping}ms`)
-    log(`${prefix}ping was used on ${args[1]}.`, 0xFFA500, username)
-  }
-}
+// if (cmd === `${prefix}ping`) {
+//   if (!args[1]) {
+//     if (!bot.players[username]) return;
+//   if (bot.players[username].ping == '0') return bot.chat(': '+username +`'s ping hasnt been calculated by the server yet.`)
+//   bot.chat(`: ${username}'s ping is ${bot.players[username].ping}ms`)
+//   log(`${prefix}ping was used.`, 0xFFA500, username)
+//   } else {
+//     if (!bot.players[args[1]]) return bot.chat(': Player not found!')
+//     if (bot.players[args[1]].ping == '0') return bot.chat(': '+args[1] +`'s ping hasnt been calculated by the server yet.`)
+//     bot.chat(`: ${args[1]}'s ping is ${bot.players[args[1]].ping}ms`)
+//     log(`${prefix}ping was used on ${args[1]}.`, 0xFFA500, username)
+//   }
+// }
 //=================
 // KDR Command
 //=================
-if (message.startsWith(`${prefix}kd`)) {
-      if (args[1]) {
-        uuid(args[1], function(uuid) {
-        if (!bot.players[args[1]]) return bot.chat(': Player not found!')
-        let serverinfo = fetch(`https://api.moobot.dev/data/0b0t/kd/${uuid}`)
-        .then(res => res.json()).then(res => bot.chat(`: ${args[1]}: Kills ${res['kills']} , Deaths ${res['deaths']}, KDR: ${roundToHundredth(res['kills']/res['deaths'])}`))
-        log(`${prefix}kd was used on ${args[1]}.`, 0xFFA500, username)
-        })
-      } else {
-        if (!bot.players[username]) return bot.chat(': Player not found!')
-      let serverinfo = fetch(`https://api.moobot.dev/data/0b0t/kd/${bot.players[username].uuid}`)
-      .then(res => res.json()).then(res => bot.chat(`: ${username}: Kills ${res['kills']} , Deaths ${res['deaths']}, KDR: ${roundToHundredth(res['kills']/res['deaths'])}`))
-      log(`${prefix}kd was used.`, 0xFFA500, username)
-      }
-    }
+// if (message.startsWith(`${prefix}kd`)) {
+//       if (args[1]) {
+//         uuid(args[1], function(uuid) {
+//         if (!bot.players[args[1]]) return bot.chat(': Player not found!')
+//         let serverinfo = fetch(`https://api.moobot.dev/data/0b0t/kd/${uuid}`)
+//         .then(res => res.json()).then(res => bot.chat(`: ${args[1]}: Kills ${res['kills']} , Deaths ${res['deaths']}, KDR: ${roundToHundredth(res['kills']/res['deaths'])}`))
+//         log(`${prefix}kd was used on ${args[1]}.`, 0xFFA500, username)
+//         })
+//       } else {
+//         if (!bot.players[username]) return bot.chat(': Player not found!')
+//       let serverinfo = fetch(`https://api.moobot.dev/data/0b0t/kd/${bot.players[username].uuid}`)
+//       .then(res => res.json()).then(res => bot.chat(`: ${username}: Kills ${res['kills']} , Deaths ${res['deaths']}, KDR: ${roundToHundredth(res['kills']/res['deaths'])}`))
+//       log(`${prefix}kd was used.`, 0xFFA500, username)
+//       }
+//     }
 })
 //============================
 // Kit Grabber
 //============================
 bot.loadPlugin(pathfinder)
-let array = ["Cody4687", "MrFast_", "Amrit1", "dirt10", "0bOp"] // Kit Access
-let array2 = ["Cody4687", "MrFast_", "Amrit1", "dirt10"]// TP Access
+let array = ["robbyfox"] // Kit Access
+let array2 = ["robbyfox"]// TP Access
 const defaultMove = new Movements(bot, mcData)
 bot.on('chat', function(username, message) {
     const cmd = message.split(' ')[0]
@@ -296,115 +301,115 @@ if (cmd === `${prefix}end`) {
 //=================
 // Kit WTF
 //=================
-if (message.startsWith(`${prefix}kit wtf`)){
-  console.log("recognized kit wtf cmd")
- if (array.includes(username)) {
-   bot.chat(': Grabbing wtf kit...')
-     console.log("array included username")
-     const x = parseFloat(`420`, 10)
-     const z = parseFloat(`69`, 10)
-     p = username
-     bot.pathfinder.setMovements(defaultMove)
-     bot.pathfinder.setGoal(new GoalXZ(x, z))
-     console.log("Navigating")
-}
-}
+// if (message.startsWith(`${prefix}kit wtf`)){
+//   console.log("recognized kit wtf cmd")
+//  if (array.includes(username)) {
+//    bot.chat(': Grabbing wtf kit...')
+//      console.log("array included username")
+//      const x = parseFloat(`420`, 10)
+//      const z = parseFloat(`69`, 10)
+//      p = username
+//      bot.pathfinder.setMovements(defaultMove)
+//      bot.pathfinder.setGoal(new GoalXZ(x, z))
+//      console.log("Navigating")
+// }
+// }
 //=================
 // Kit Redstone
 //=================
-if (message.startsWith(`${prefix}kit redstone`)){
-  console.log("recognized kit redstone cmd")
- if (array.includes(username)) {
-  bot.chat(': Grabbing redstone kit...')
-     console.log("array included username")
-     const x = parseFloat(`420`, 10)
-     const z = parseFloat(`69`, 10)
-     p = username
-     bot.pathfinder.setMovements(defaultMove)
-     bot.pathfinder.setGoal(new GoalXZ(x, z))
-     console.log("Navigating")
-}
-}
+// if (message.startsWith(`${prefix}kit redstone`)){
+//   console.log("recognized kit redstone cmd")
+//  if (array.includes(username)) {
+//   bot.chat(': Grabbing redstone kit...')
+//      console.log("array included username")
+//      const x = parseFloat(`420`, 10)
+//      const z = parseFloat(`69`, 10)
+//      p = username
+//      bot.pathfinder.setMovements(defaultMove)
+//      bot.pathfinder.setGoal(new GoalXZ(x, z))
+//      console.log("Navigating")
+// }
+// }
 //=================
 // Kit Arik
 //=================
- if (message.startsWith(`${prefix}kit arik`)){
-     console.log("recognized kit arik cmd")
-    if (array.includes(username)) {
-      bot.chat(': Grabbing arik kit...')
-        console.log("array included username")
-        const x = parseFloat(`420`, 10)
-        const z = parseFloat(`69`, 10)
-        p = username
-        bot.pathfinder.setMovements(defaultMove)
-        bot.pathfinder.setGoal(new GoalXZ(x, z))
-        console.log("Navigating")
-}
-}
+//  if (message.startsWith(`${prefix}kit arik`)){
+//      console.log("recognized kit arik cmd")
+//     if (array.includes(username)) {
+//       bot.chat(': Grabbing arik kit...')
+//         console.log("array included username")
+//         const x = parseFloat(`420`, 10)
+//         const z = parseFloat(`69`, 10)
+//         p = username
+//         bot.pathfinder.setMovements(defaultMove)
+//         bot.pathfinder.setGoal(new GoalXZ(x, z))
+//         console.log("Navigating")
+// }
+// }
 //=================
 // Kit teelee1
 //=================
-if (message.startsWith(`${prefix}kit teeleel`)){
-    console.log("recognized kit teeleel cmd")
-   if (array.includes(username)) {
-    bot.chat(': Grabbing teelee1 kit...')
-       console.log("array included username")
-       const x = parseFloat(`420`, 10)
-       const z = parseFloat(`69`, 10)
-       p = username
-       bot.pathfinder.setMovements(defaultMove)
-       bot.pathfinder.setGoal(new GoalXZ(x, z))
-       console.log("Navigating")
-}
-}
+// if (message.startsWith(`${prefix}kit teeleel`)){
+//     console.log("recognized kit teeleel cmd")
+//    if (array.includes(username)) {
+//     bot.chat(': Grabbing teelee1 kit...')
+//        console.log("array included username")
+//        const x = parseFloat(`420`, 10)
+//        const z = parseFloat(`69`, 10)
+//        p = username
+//        bot.pathfinder.setMovements(defaultMove)
+//        bot.pathfinder.setGoal(new GoalXZ(x, z))
+//        console.log("Navigating")
+// }
+// }
 //=================
 // Kit gspot
 //=================
-if (message.startsWith(`${prefix}kit gspot`)){
-    console.log("recognized kit gspot cmd")
-   if (array.includes(username)) {
-    bot.chat(': Grabbing gspot kit...')
-       console.log("array included username")
-       const x = parseFloat(`420`, 10)
-       const z = parseFloat(`69`, 10)
-       p = username
-       bot.pathfinder.setMovements(defaultMove)
-       bot.pathfinder.setGoal(new GoalXZ(x, z))
-       console.log("Navigating")
-}
-}
+// if (message.startsWith(`${prefix}kit gspot`)){
+//     console.log("recognized kit gspot cmd")
+//    if (array.includes(username)) {
+//     bot.chat(': Grabbing gspot kit...')
+//        console.log("array included username")
+//        const x = parseFloat(`420`, 10)
+//        const z = parseFloat(`69`, 10)
+//        p = username
+//        bot.pathfinder.setMovements(defaultMove)
+//        bot.pathfinder.setGoal(new GoalXZ(x, z))
+//        console.log("Navigating")
+// }
+// }
 //=================
 // Kit fix
 //=================
-if (message.startsWith(`${prefix}kit fix`)){
-    console.log("recognized kit fix cmd")
-   if (array.includes(username)) {
-    bot.chat(': Grabbing fix kit...')
-       console.log("array included username")
-       const x = parseFloat(`420`, 10)
-       const z = parseFloat(`69`, 10)
-       p = username
-       bot.pathfinder.setMovements(defaultMove)
-       bot.pathfinder.setGoal(new GoalXZ(x, z))
-       console.log("Navigating")
-}
-}
+// if (message.startsWith(`${prefix}kit fix`)){
+//     console.log("recognized kit fix cmd")
+//    if (array.includes(username)) {
+//     bot.chat(': Grabbing fix kit...')
+//        console.log("array included username")
+//        const x = parseFloat(`420`, 10)
+//        const z = parseFloat(`69`, 10)
+//        p = username
+//        bot.pathfinder.setMovements(defaultMove)
+//        bot.pathfinder.setGoal(new GoalXZ(x, z))
+//        console.log("Navigating")
+// }
+// }
 //=================
 // Kit gnome
 //=================
-if (message.startsWith(`${prefix}kit gnome`)){
-    console.log("recognized kit gnome cmd")
-   if (array.includes(username)) {
-    bot.chat(': Grabbing gnome kit...')
-       console.log("array included username")
-       const x = parseFloat(`420`, 10)
-       const z = parseFloat(`69`, 10)
-       p = username
-       bot.pathfinder.setMovements(defaultMove)
-       bot.pathfinder.setGoal(new GoalXZ(x, z))
-       console.log("Navigating")
-      }
-    }
+// if (message.startsWith(`${prefix}kit gnome`)){
+//     console.log("recognized kit gnome cmd")
+//    if (array.includes(username)) {
+//     bot.chat(': Grabbing gnome kit...')
+//        console.log("array included username")
+//        const x = parseFloat(`420`, 10)
+//        const z = parseFloat(`69`, 10)
+//        p = username
+//        bot.pathfinder.setMovements(defaultMove)
+//        bot.pathfinder.setGoal(new GoalXZ(x, z))
+//        console.log("Navigating")
+//       }
+//     }
 })
 //=================
 // Tpa Event
@@ -437,15 +442,15 @@ bot.on('tpaccepted', function (username) {
 //==============================
 // Discord Commands
 //==============================
-bot.loadPlugin(tpsPlugin) 
-client.on("message", msg => {
- if (msg.content.startsWith('!info')) { /*Info Command*/
-      let embed = new Discord.MessageEmbed()
-      .addField(`Bot Info`,`Username: ${bot.username}\nUptime: ${prettyMilliseconds(client.uptime)}\nKits Taken: ${kitstaken}`, true)
-      .setTimestamp()
-      .addField('Server Info',`IP: ${options.host}\nPort: ${options.port}\nPing: ${bot.players[bot.username].ping}\nTPS: ${bot.getTps()}`, true)
-      msg.channel.send(embed)
-    }
-})
+// bot.loadPlugin(tpsPlugin) 
+// client.on("message", msg => {
+//  if (msg.content.startsWith('!info')) { /*Info Command*/
+//       let embed = new Discord.MessageEmbed()
+//       .addField(`Bot Info`,`Username: ${bot.username}\nUptime: ${prettyMilliseconds(client.uptime)}\nKits Taken: ${kitstaken}`, true)
+//       .setTimestamp()
+//       .addField('Server Info',`IP: ${options.host}\nPort: ${options.port}\nPing: ${bot.players[bot.username].ping}\nTPS: ${bot.getTps()}`, true)
+//       msg.channel.send(embed)
+//     }
+// })
 
 }

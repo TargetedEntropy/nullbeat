@@ -88,4 +88,6 @@ lerna-debug.log
 
 # System Files
 .DS_Store
-Thumbs.db
+Thumbs.dbconfig.json
+
+config.json
