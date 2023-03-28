@@ -3,8 +3,7 @@ const mineflayer = require("mineflayer");
 const { listenerCount } = require("process");
 var prefix = config.prefix;
 const { pathfinder, Movements } = require("mineflayer-pathfinder");
-const { GoalNear, GoalBlock, GoalXZ, GoalY, GoalInvert, GoalFollow } =
-  require("mineflayer-pathfinder").goals;
+const { GoalXZ } = require("mineflayer-pathfinder").goals;
 const mcData = require("minecraft-data")("1.12.2");
 const colors = require("colors");
 // const prettyMilliseconds = require("pretty-ms");
@@ -13,17 +12,15 @@ const fetch = require("node-fetch");
 const roundToHundredth = (value) => {
   return Number(value.toFixed(2));
 };
-const fs = require("fs");
+
+// Access lists
+let array = ["robbyfox", "Toomani"]; // Kit Access
+let tp_whitelist = ["robbyfox", "Toomani"]; // TP Access
+
 
 // Discord
 const Discord = require("discord.js");
-const {
-  Client,
-  Events,
-  Collection,
-  GatewayIntentBits,
-  EmbedBuilder,
-} = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 
 const client = new Client({
   intents: [
@@ -44,6 +41,7 @@ client.on("ready", () => {
 });
 client.login(config.token);
 
+// Mineflayer setttings
 let options = {
   host: `116.203.85.245`,
   // host: `10.0.0.39`,
@@ -105,10 +103,10 @@ function bindEvents(bot) {
     bindEvents(bot);
     client.login(config.token);
   }
+
   //================
   // Chat Patterns
   //================
-
   bot.chatAddPattern(
     /^Teleported to ([a-zA-Z0-9_]{3,16})!$/,
     "tpaccepted",
@@ -119,10 +117,10 @@ function bindEvents(bot) {
     "tpRequest",
     "tpa request"
   );
+
   //=======================
   // Tpa to bot
   //=======================
-
   bot.on("tpRequest", function (username) {
     console.log("TP Request");
     if (tp_whitelist.includes(username)) {
@@ -135,6 +133,7 @@ function bindEvents(bot) {
       );
     }
   });
+
   //=======================
   // UUID Function
   //=======================
@@ -218,8 +217,6 @@ function bindEvents(bot) {
   // Kit Grabber
   //============================
   bot.loadPlugin(pathfinder);
-  let array = ["robbyfox", "Toomani"]; // Kit Access
-  let tp_whitelist = ["robbyfox", "Toomani"]; // TP Access
   const defaultMove = new Movements(bot, mcData);
   bot.on("chat", function (username, message) {
     const cmd = message.split(" ")[0];
