@@ -7,7 +7,6 @@ const { GoalNear, GoalBlock, GoalXZ, GoalY, GoalInvert, GoalFollow } =
   require("mineflayer-pathfinder").goals;
 const mcData = require("minecraft-data")("1.12.2");
 const colors = require("colors");
-const Discord = require("discord.js");
 // const prettyMilliseconds = require("pretty-ms");
 var tpsPlugin = require("mineflayer-tps")(mineflayer);
 const fetch = require("node-fetch");
@@ -15,108 +14,48 @@ const roundToHundredth = (value) => {
   return Number(value.toFixed(2));
 };
 const fs = require("fs");
-const { MessageEmbed } = require("discord.js");
-const { Client, Collection, GatewayIntentBits } = require('discord.js')
+
+// Discord
+const Discord = require("discord.js");
+const {
+  Client,
+  Events,
+  Collection,
+  GatewayIntentBits,
+  EmbedBuilder,
+} = require("discord.js");
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessageTyping,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.DirectMessageTyping,
+  ],
+});
+client.commands = new Discord.Collection();
+client.on("ready", () => {
+  console.log("Bridge online!".blue);
+  client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
+});
+client.login(config.token);
+
 let options = {
-  // host: `80.241.218.27`,//TODO replace with 0b0t ip address
-  host: `10.0.0.39`,
+  host: `116.203.85.245`,
+  // host: `10.0.0.39`,
   port: 25565,
   username: `${config.email}`,
   auth: "microsoft",
   version: `1.12.2`,
 };
+
 const bot = mineflayer.createBot(options);
 bindEvents(bot);
 function bindEvents(bot) {
-  // const client = new Discord.Client({
-  //     disableEveryone: true
-  // });
-  const client = new Discord.Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessageTyping,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.DirectMessageReactions,
-        GatewayIntentBits.DirectMessageTyping
-    ],
-  });
-  client.commands = new Discord.Collection();
-  client.on("ready", () => {
-    console.log("Bridge online!".blue);
-    client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
-  });
-  //=======================
-  // Bridge Discord to MC
-  //=======================
-  client.on("message", (msg) => {
-    if (msg.channel.id != config.bridgeID) return;
-    if (msg.author.bot) return;
-    if (msg.content.startsWith("/")) {
-      bot.chat(`${msg}`);
-      let embed = new Discord.MessageEmbed()
-        .setAuthor("Run Command")
-        .setTimestamp()
-        .setDescription(`Sent Command: _${msg}_`);
-      msg.channel.send(embed);
-      return;
-    }
-    let content = msg.content.toString();
-    bot.chat(": [" + msg.author.tag + "] " + content);
-  });
-  //======================
-  // Bridge Mc to Discord
-  //======================
-  bot.on("chat", (username, message) => {
-    if (!message) return;
-    if (message.includes("@everyone")) return;
-    if (message.includes("@here")) return;
-    if (!bot.players[username]) {
-      let embed = new Discord.MessageEmbed()
-        .setDescription(`${message}`)
-        .setColor("0x30f2cb")
-        .setTimestamp()
-        .setAuthor(`SERVER`);
-      client.channels.cache.get(config.bridgeID).send(embed);
-      return;
-    }
-    if (username == bot.username) {
-      let embed = new Discord.MessageEmbed()
-        .setDescription(`${message}`)
-        .setColor("0x30f2cb")
-        .setTimestamp()
-        .setAuthor(
-          username,
-          `https://mc-heads.net/avatar/${bot.player.uuid}/512`
-        );
-      client.channels.cache.get(config.bridgeID).send(embed);
-      return;
-    }
-    if (!bot.players[username]) return;
-    originalString = bot.players[username].uuid;
-    newString = originalString.replace("-", "");
-
-    client.channels.cache.get(config.bridgeID).send(`${username}> ${message}`);
-  });
-  //==================
-  // Whisper Function
-  //==================
-  bot.on("whisper", (username, message) => {
-    if (!bot.players[username]) return;
-    originalString = bot.players[username].uuid;
-    newString = originalString.replace("-", "");
-    let embed = new Discord.MessageEmbed()
-      .setDescription(`${message}`)
-      .setColor("0xa61987")
-      .setAuthor(
-        username + "whispered:",
-        `https://mc-heads.net/avatar/${newString}/512`
-      );
-    client.channels.cache.get(config.bridgeID).send("embed");
-  });
-  client.login(config.token);
   //=================
   // Console Login
   //=================
@@ -136,6 +75,7 @@ function bindEvents(bot) {
     setTimeout(() => {
       console.log(`──────────────────────────────────────────`.blue);
     }, 4);
+    client.channels.cache.get(config.bridgeID).send("Bot Online!");
   });
 
   //=================
@@ -184,12 +124,16 @@ function bindEvents(bot) {
   //=======================
 
   bot.on("tpRequest", function (username) {
-    if (array2.includes(username)) {
+    console.log("TP Request");
+    if (tp_whitelist.includes(username)) {
+      client.channels.cache
+        .get(config.bridgeID)
+        .send(`Accepting TP Request from ${username}!`);
       return (
         bot.chat(`/msg ${username} Auto Accepting..`),
         bot.chat(`/tpy ${username}`)
       );
-    } else return bot.chat(`/msg ${username} You are not on the whitelist!`);
+    }
   });
   //=======================
   // UUID Function
@@ -210,16 +154,19 @@ function bindEvents(bot) {
   //=====================
   function log(msg, color, user) {
     if (bot.players[user].uuid != undefined) {
-      originalString = bot.players[user].uuid;
-      newString = originalString.replace("-", "");
-      let embed = new Discord.MessageEmbed()
-        .setDescription(msg)
-        .setColor(color)
-        .setTimestamp()
-        .setAuthor(user, `https://mc-heads.net/avatar/${newString}/512`);
-      client.channels.cache.get(config.logsID).send(embed);
+      client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
     }
   }
+
+  //==================
+  // Whisper Function
+  //==================
+  bot.on("whisper", (username, message) => {
+    if (!bot.players[username]) return;
+    client.channels.cache
+      .get(config.bridgeID)
+      .send(`${username} w> ${message}`);
+  });
 
   //==========================
   // Chat Commands
@@ -249,28 +196,7 @@ function bindEvents(bot) {
     //       bot.chat(`/kill`)
     //       log(`${prefix}kill was used.`, 0xFF4500, username)
     //   }}
-    //=================
-    // tps Command
-    //=================
-    // if (cmd === `${prefix}tps`) {
-    //   bot.chat(`: Current tps: ${bot.getTps()}.`)
-    // }
-    //=================
-    // tps Command
-    //=================
-    // if (cmd === `${prefix}sex`) {
-    //   if (!args[1]) return bot.chat(': You didnt specify a player')
-    //   bot.chat(`: ${username} just sexxed ${args[1]}!`)
-    // }
-    //=================
-    // 2bqueue Command
-    //=================
-    // if (cmd ===`${prefix}2bqueue`) {
-    //   let queuefetch = fetch('https://2b2t.io/api/queue?last=true')
-    //   .then(res => res.json()).then(res => bot.chat(`: 2b2t queue: ${res[0][1]}.`))
-    //   let prioqueuefetch = fetch('https://2b2t.io/api/prioqueue?last=true')
-    //   .then(res => res.json()).then(res => bot.chat(`: 2b2t prioq: ${res[0][1]}.`))
-    // }
+
     //=================
     // Ping Command
     //=================s
@@ -287,31 +213,13 @@ function bindEvents(bot) {
     //     log(`${prefix}ping was used on ${args[1]}.`, 0xFFA500, username)
     //   }
     // }
-    //=================
-    // KDR Command
-    //=================
-    // if (message.startsWith(`${prefix}kd`)) {
-    //       if (args[1]) {
-    //         uuid(args[1], function(uuid) {
-    //         if (!bot.players[args[1]]) return bot.chat(': Player not found!')
-    //         let serverinfo = fetch(`https://api.moobot.dev/data/0b0t/kd/${uuid}`)
-    //         .then(res => res.json()).then(res => bot.chat(`: ${args[1]}: Kills ${res['kills']} , Deaths ${res['deaths']}, KDR: ${roundToHundredth(res['kills']/res['deaths'])}`))
-    //         log(`${prefix}kd was used on ${args[1]}.`, 0xFFA500, username)
-    //         })
-    //       } else {
-    //         if (!bot.players[username]) return bot.chat(': Player not found!')
-    //       let serverinfo = fetch(`https://api.moobot.dev/data/0b0t/kd/${bot.players[username].uuid}`)
-    //       .then(res => res.json()).then(res => bot.chat(`: ${username}: Kills ${res['kills']} , Deaths ${res['deaths']}, KDR: ${roundToHundredth(res['kills']/res['deaths'])}`))
-    //       log(`${prefix}kd was used.`, 0xFFA500, username)
-    //       }
-    //     }
   });
   //============================
   // Kit Grabber
   //============================
   bot.loadPlugin(pathfinder);
-  let array = ["robbyfox"]; // Kit Access
-  let array2 = ["robbyfox"]; // TP Access
+  let array = ["robbyfox", "Toomani"]; // Kit Access
+  let tp_whitelist = ["robbyfox", "Toomani"]; // TP Access
   const defaultMove = new Movements(bot, mcData);
   bot.on("chat", function (username, message) {
     const cmd = message.split(" ")[0];
@@ -324,99 +232,20 @@ function bindEvents(bot) {
     //=================
     // Kit WTF
     //=================
-    // if (message.startsWith(`${prefix}kit wtf`)){
-    //   console.log("recognized kit wtf cmd")
-    //  if (array.includes(username)) {
-    //    bot.chat(': Grabbing wtf kit...')
-    //      console.log("array included username")
-    //      const x = parseFloat(`420`, 10)
-    //      const z = parseFloat(`69`, 10)
-    //      p = username
-    //      bot.pathfinder.setMovements(defaultMove)
-    //      bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //      console.log("Navigating")
-    // }
-    // }
-    //=================
-    // Kit Redstone
-    //=================
-    // if (message.startsWith(`${prefix}kit redstone`)){
-    //   console.log("recognized kit redstone cmd")
-    //  if (array.includes(username)) {
-    //   bot.chat(': Grabbing redstone kit...')
-    //      console.log("array included username")
-    //      const x = parseFloat(`420`, 10)
-    //      const z = parseFloat(`69`, 10)
-    //      p = username
-    //      bot.pathfinder.setMovements(defaultMove)
-    //      bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //      console.log("Navigating")
-    // }
-    // }
-    //=================
-    // Kit Arik
-    //=================
-    //  if (message.startsWith(`${prefix}kit arik`)){
-    //      console.log("recognized kit arik cmd")
-    //     if (array.includes(username)) {
-    //       bot.chat(': Grabbing arik kit...')
-    //         console.log("array included username")
-    //         const x = parseFloat(`420`, 10)
-    //         const z = parseFloat(`69`, 10)
-    //         p = username
-    //         bot.pathfinder.setMovements(defaultMove)
-    //         bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //         console.log("Navigating")
-    // }
-    // }
-    //=================
-    // Kit teelee1
-    //=================
-    // if (message.startsWith(`${prefix}kit teeleel`)){
-    //     console.log("recognized kit teeleel cmd")
-    //    if (array.includes(username)) {
-    //     bot.chat(': Grabbing teelee1 kit...')
-    //        console.log("array included username")
-    //        const x = parseFloat(`420`, 10)
-    //        const z = parseFloat(`69`, 10)
-    //        p = username
-    //        bot.pathfinder.setMovements(defaultMove)
-    //        bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //        console.log("Navigating")
-    // }
-    // }
-    //=================
-    // Kit gspot
-    //=================
-    // if (message.startsWith(`${prefix}kit gspot`)){
-    //     console.log("recognized kit gspot cmd")
-    //    if (array.includes(username)) {
-    //     bot.chat(': Grabbing gspot kit...')
-    //        console.log("array included username")
-    //        const x = parseFloat(`420`, 10)
-    //        const z = parseFloat(`69`, 10)
-    //        p = username
-    //        bot.pathfinder.setMovements(defaultMove)
-    //        bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //        console.log("Navigating")
-    // }
-    // }
-    //=================
-    // Kit fix
-    //=================
-    // if (message.startsWith(`${prefix}kit fix`)){
-    //     console.log("recognized kit fix cmd")
-    //    if (array.includes(username)) {
-    //     bot.chat(': Grabbing fix kit...')
-    //        console.log("array included username")
-    //        const x = parseFloat(`420`, 10)
-    //        const z = parseFloat(`69`, 10)
-    //        p = username
-    //        bot.pathfinder.setMovements(defaultMove)
-    //        bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //        console.log("Navigating")
-    // }
-    // }
+    if (message.startsWith(`${prefix}kit wtf`)) {
+      console.log("recognized kit wtf cmd");
+      if (array.includes(username)) {
+        bot.chat(": Grabbing wtf kit...");
+        console.log("array included username");
+        const x = parseFloat(`420`, 10);
+        const z = parseFloat(`69`, 10);
+        p = username;
+        bot.pathfinder.setMovements(defaultMove);
+        bot.pathfinder.setGoal(new GoalXZ(x, z));
+        console.log("Navigating");
+      }
+    }
+
     //=================
     // Kit gnome
     //=================
@@ -434,6 +263,7 @@ function bindEvents(bot) {
     //       }
     //     }
   });
+
   //=================
   // Tpa Event
   //=================
@@ -451,17 +281,12 @@ function bindEvents(bot) {
     setTimeout(() => {
       bot.chat(`/kill`);
       console.log("bot /killed");
-      originalString = bot.players[username].uuid;
-      newString = originalString.replace("-", "");
-      kitstaken = kitstaken + 1;
-      let embed = new Discord.MessageEmbed()
-        .setDescription(`Gave a kit to ${username}.`)
-        .setColor("0xEFFF00")
-        .setTimestamp()
-        .setAuthor(username, `https://mc-heads.net/avatar/${newString}/512`);
-      client.channels.cache.get(config.logsID).send(embed);
+      client.channels.cache
+        .get(config.logsID)
+        .send(`[Kit] Gave a kit to ${username}.`);
     }, 500);
   });
+
   //==============================
   // Discord Commands
   //==============================
