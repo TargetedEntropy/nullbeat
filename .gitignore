@@ -89,5 +89,4 @@ lerna-debug.log
 # System Files
 .DS_Store
 Thumbs.dbconfig.json
-
 config.json
