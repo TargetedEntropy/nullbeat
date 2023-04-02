@@ -103,11 +103,6 @@ function bindEvents(bot) {
   //================
   // Chat Patterns
   //================
-  // bot.chatAddPattern(
-  //   /^Teleported to ([a-zA-Z0-9_]{3,16})!$/,
-  //   "tpaccepted",
-  //   "tpa accepted"
-  // );
   bot.chatAddPattern(
     /^([a-zA-Z0-9_]{3,16}) wants to teleport to you\.$/,
     "tpRequest",
@@ -172,16 +167,6 @@ function bindEvents(bot) {
             return bot.end();
         }
       }
-  });
-
-
-  //=================
-  // Tpa Event
-  //=================
-  let p = "";
-  bot.on("goal_reached", () => {
-    bot.chat(`/tpa ${p}`);
-    bot.pathfinder.setGoal(null);
   });
 
 }
