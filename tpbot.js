@@ -13,7 +13,7 @@ const roundToHundredth = (value) => {
 };
 
 // Access lists
-let tp_whitelist = ["robbyfox", "Toomani", "missedfish"]; // TP Access
+let tp_whitelist = [""]; // TP Access
 
 // Discord
 const Discord = require("discord.js");
