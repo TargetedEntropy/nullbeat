@@ -1,5 +1,6 @@
 {
     "email": "",
     "bridgeID": "",
-    "token": ""
+    "token": "",
+    "whitelist": ["", ""]
   }

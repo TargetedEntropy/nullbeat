@@ -12,9 +12,6 @@ const roundToHundredth = (value) => {
   return Number(value.toFixed(2));
 };
 
-// Access lists
-let tp_whitelist = [""]; // TP Access
-
 // Discord
 const Discord = require("discord.js");
 const { Client, GatewayIntentBits } = require("discord.js");
@@ -114,7 +111,7 @@ function bindEvents(bot) {
   //=======================
   bot.on("tpRequest", function (username) {
     console.log("TP Request");
-    if (tp_whitelist.includes(username)) {
+    if (config.whitelist.includes(username)) {
       client.channels.cache
         .get(config.bridgeID)
         .send(`${bot.username} is accepting TP Request from ${username}!`);
@@ -161,7 +158,7 @@ function bindEvents(bot) {
         bot.chat(`/w ${username} hello`)
       }
 
-      if (tp_whitelist.includes(username)) {
+      if (config.whitelist.includes(username)) {
         if (message == "kill") {
             bot.chat(`/w ${username} Terminating Bot`)
             return bot.end();
