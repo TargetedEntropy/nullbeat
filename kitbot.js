@@ -13,14 +13,10 @@ const roundToHundredth = (value) => {
   return Number(value.toFixed(2));
 };
 
-// Access lists
-let array = ["robbyfox", "Toomani"]; // Kit Access
-let tp_whitelist = ["robbyfox", "Toomani"]; // TP Access
-
-
 // Discord
 const Discord = require("discord.js");
 const { Client, GatewayIntentBits } = require("discord.js");
+const { Console } = require("console");
 
 const client = new Client({
   intents: [
@@ -36,7 +32,7 @@ const client = new Client({
 });
 client.commands = new Discord.Collection();
 client.on("ready", () => {
-  console.log("Bridge online!".blue);
+  console.log("Kitbot online!".blue);
   client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
 });
 client.login(config.token);
@@ -44,7 +40,6 @@ client.login(config.token);
 // Mineflayer setttings
 let options = {
   host: `116.203.85.245`,
-  // host: `10.0.0.39`,
   port: 25565,
   username: `${config.email}`,
   auth: "microsoft",
@@ -52,6 +47,12 @@ let options = {
 };
 
 const bot = mineflayer.createBot(options);
+
+const { mineflayer: mineflayerViewer } = require('prismarine-viewer')
+bot.once('spawn', () => {
+  mineflayerViewer(bot, { port: 3007, firstPerson: true }) // port is the web server port, if first person is false, you get a bird's-eye view
+})
+
 bindEvents(bot);
 function bindEvents(bot) {
   //=================
@@ -73,7 +74,7 @@ function bindEvents(bot) {
     setTimeout(() => {
       console.log(`──────────────────────────────────────────`.blue);
     }, 4);
-    client.channels.cache.get(config.bridgeID).send("Bot Online!");
+    client.channels.cache.get(config.bridgeID).send(`${bot.username} Online!`);
   });
 
   //=================
@@ -121,18 +122,19 @@ function bindEvents(bot) {
   //=======================
   // Tpa to bot
   //=======================
-  bot.on("tpRequest", function (username) {
-    console.log("TP Request");
-    if (tp_whitelist.includes(username)) {
-      client.channels.cache
-        .get(config.bridgeID)
-        .send(`Accepting TP Request from ${username}!`);
-      return (
-        bot.chat(`/msg ${username} Auto Accepting..`),
-        bot.chat(`/tpy ${username}`)
-      );
-    }
-  });
+  // bot.on("tpRequest", function (username) {
+  //   console.log("TP Request");
+  //   if (config.whitelist.includes(username)) {
+  //     client.channels.cache
+  //       .get(config.bridgeID)
+  //       .send(`${bot.username} is accepting TP Request from ${username}!`);
+  //     return (
+  //       bot.chat(`/msg ${username} Auto Accepting..`),
+  //       bot.chat(`/tpy ${username}`)
+  //     );
+  //   }
+  // });
+
 
   //=======================
   // UUID Function
@@ -160,105 +162,43 @@ function bindEvents(bot) {
   //==================
   // Whisper Function
   //==================
+  bot.loadPlugin(pathfinder);
+  const defaultMove = new Movements(bot, mcData);
+  
   bot.on("whisper", (username, message) => {
     if (!bot.players[username]) return;
     client.channels.cache
       .get(config.bridgeID)
       .send(`${username} w> ${message}`);
+
+        if (message == "!kit") {
+          console.log(`Getting dakit for ${username}`);
+          const x = parseFloat(`-860432`, 10);
+          const z = parseFloat(`-865463`, 10);
+          p = username;
+          bot.pathfinder.setMovements(defaultMove);
+          bot.pathfinder.setGoal(new GoalXZ(x, z));
+          console.log("Navigating");
+        }
+      
   });
 
-  //==========================
-  // Chat Commands
-  //==========================
-  bot.on("chat", (username, message) => {
-    const args = message.split(" ");
-    const cmd = message.split(" ")[0];
-    //=================
-    // Help Command
-    //=================
-    // if (cmd === `${prefix}help`) {
-    //       bot.chat(`: ${username}, https://mrfast-js.github.io/`)
-    //       log(`${prefix}help was used.`, 0xFFA500, username)
-    //   }
-    //=================
-    // Kits Command
-    //=================
-    // if (cmd === `${prefix}kits`) {
-    //   bot.chat(`: ${username}, Current kits are: wtf, redstone, arik, teeleel, gspot, fix, gnome.`)
-    //   log(`${prefix}kits was used.`, 0xFFA500, username)
-    // }
-    //=================
-    // Kill Command
-    //=================
-    // if (cmd === `${prefix}kill`) {
-    //   if (array.includes(username)) {
-    //       bot.chat(`/kill`)
-    //       log(`${prefix}kill was used.`, 0xFF4500, username)
-    //   }}
 
-    //=================
-    // Ping Command
-    //=================s
-    // if (cmd === `${prefix}ping`) {
-    //   if (!args[1]) {
-    //     if (!bot.players[username]) return;
-    //   if (bot.players[username].ping == '0') return bot.chat(': '+username +`'s ping hasnt been calculated by the server yet.`)
-    //   bot.chat(`: ${username}'s ping is ${bot.players[username].ping}ms`)
-    //   log(`${prefix}ping was used.`, 0xFFA500, username)
-    //   } else {
-    //     if (!bot.players[args[1]]) return bot.chat(': Player not found!')
-    //     if (bot.players[args[1]].ping == '0') return bot.chat(': '+args[1] +`'s ping hasnt been calculated by the server yet.`)
-    //     bot.chat(`: ${args[1]}'s ping is ${bot.players[args[1]].ping}ms`)
-    //     log(`${prefix}ping was used on ${args[1]}.`, 0xFFA500, username)
-    //   }
-    // }
-  });
   //============================
   // Kit Grabber
   //============================
-  bot.loadPlugin(pathfinder);
-  const defaultMove = new Movements(bot, mcData);
   bot.on("chat", function (username, message) {
-    const cmd = message.split(" ")[0];
-    const args = message.split(" ");
-    if (cmd === `${prefix}end`) {
-      if (array.includes(username)) {
-        return bot.end();
-      } else return;
-    }
-    //=================
-    // Kit WTF
-    //=================
-    if (message.startsWith(`${prefix}kit wtf`)) {
-      console.log("recognized kit wtf cmd");
-      if (array.includes(username)) {
-        bot.chat(": Grabbing wtf kit...");
-        console.log("array included username");
-        const x = parseFloat(`420`, 10);
-        const z = parseFloat(`69`, 10);
-        p = username;
-        bot.pathfinder.setMovements(defaultMove);
-        bot.pathfinder.setGoal(new GoalXZ(x, z));
-        console.log("Navigating");
-      }
-    }
 
-    //=================
-    // Kit gnome
-    //=================
-    // if (message.startsWith(`${prefix}kit gnome`)){
-    //     console.log("recognized kit gnome cmd")
-    //    if (array.includes(username)) {
-    //     bot.chat(': Grabbing gnome kit...')
-    //        console.log("array included username")
-    //        const x = parseFloat(`420`, 10)
-    //        const z = parseFloat(`69`, 10)
-    //        p = username
-    //        bot.pathfinder.setMovements(defaultMove)
-    //        bot.pathfinder.setGoal(new GoalXZ(x, z))
-    //        console.log("Navigating")
-    //       }
-    //     }
+    if (message == "!kit") {
+      console.log(`Getting dakit for ${username}`);
+      const x = parseFloat(`-860432`, 10);
+      const z = parseFloat(`-865463`, 10);
+      p = username;
+      bot.pathfinder.setMovements(defaultMove);
+      bot.pathfinder.setGoal(new GoalXZ(x, z));
+      console.log("Navigating");
+    }    
+
   });
 
   //=================
@@ -275,26 +215,20 @@ function bindEvents(bot) {
   //=================
   let kitstaken = 0;
   bot.on("tpaccepted", function (username) {
-    setTimeout(() => {
+      setTimeout(() => {
+        client.channels.cache
+          .get(config.bridgeID)
+          .send(`[Kit] Gave a kit to ${username} at ${bot.entity.position}`);
+      }, 500);
       bot.chat(`/kill`);
       console.log("bot /killed");
-      client.channels.cache
-        .get(config.logsID)
-        .send(`[Kit] Gave a kit to ${username}.`);
-    }, 500);
+
+    setTimeout(() => {
+      if (bot.entity.position.x != -860428.5) {
+        bot.chat(`/kill`);
+        console.log("bot /killed by timer");        
+      }
+    }, 15000);
   });
 
-  //==============================
-  // Discord Commands
-  //==============================
-  // bot.loadPlugin(tpsPlugin)
-  // client.on("message", msg => {
-  //  if (msg.content.startsWith('!info')) { /*Info Command*/
-  //       let embed = new Discord.MessageEmbed()
-  //       .addField(`Bot Info`,`Username: ${bot.username}\nUptime: ${prettyMilliseconds(client.uptime)}\nKits Taken: ${kitstaken}`, true)
-  //       .setTimestamp()
-  //       .addField('Server Info',`IP: ${options.host}\nPort: ${options.port}\nPing: ${bot.players[bot.username].ping}\nTPS: ${bot.getTps()}`, true)
-  //       msg.channel.send(embed)
-  //     }
-  // })
 }
