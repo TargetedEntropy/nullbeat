@@ -155,7 +155,7 @@ function bindEvents(bot) {
       .send(`${username} w> ${message}`);
 
       if (message == "testies") {
-        bot.chat(`/w ${username} hello`)
+        bot.chat(`/tpa ${username}`)
       }
 
       if (config.whitelist.includes(username)) {
