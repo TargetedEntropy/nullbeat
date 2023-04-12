@@ -30,7 +30,8 @@ const bot = mineflayer.createBot({
   host: process.argv[2],
   port: parseInt(process.argv[3]),
   username: 'boostie@gmail.com',
-  auth: 'microsoft'
+  auth: 'microsoft',
+  version: `1.12.2`
 //   username: process.argv[4] ? process.argv[4] : 'chest',
 //   password: process.argv[5]
 })

@@ -13,27 +13,27 @@ const roundToHundredth = (value) => {
 };
 
 // Discord
-const Discord = require("discord.js");
-const { Client, GatewayIntentBits } = require("discord.js");
+// const Discord = require("discord.js");
+// const { Client, GatewayIntentBits } = require("discord.js");
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.DirectMessageReactions,
-    GatewayIntentBits.DirectMessageTyping,
-  ],
-});
-client.commands = new Discord.Collection();
-client.on("ready", () => {
-  console.log("Bot online!".blue);
-  client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
-});
-client.login(config.token);
+// const client = new Client({
+//   intents: [
+//     GatewayIntentBits.Guilds,
+//     GatewayIntentBits.GuildMessages,
+//     GatewayIntentBits.GuildMessageReactions,
+//     GatewayIntentBits.GuildMembers,
+//     GatewayIntentBits.GuildMessageTyping,
+//     GatewayIntentBits.DirectMessages,
+//     GatewayIntentBits.DirectMessageReactions,
+//     GatewayIntentBits.DirectMessageTyping,
+//   ],
+// });
+// client.commands = new Discord.Collection();
+// client.on("ready", () => {
+//   console.log("Bot online!".blue);
+//   client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
+// });
+// client.login(config.token);
 
 // Mineflayer setttings
 let options = {
@@ -66,7 +66,7 @@ function bindEvents(bot) {
     setTimeout(() => {
       console.log(`──────────────────────────────────────────`.blue);
     }, 4);
-    client.channels.cache.get(config.bridgeID).send(`${bot.username} Online!`);
+    // client.channels.cache.get(config.bridgeID).send(`${bot.username} Online!`);
   });
 
   //=================
@@ -112,9 +112,9 @@ function bindEvents(bot) {
   bot.on("tpRequest", function (username) {
     console.log("TP Request");
     if (config.whitelist.includes(username)) {
-      client.channels.cache
-        .get(config.bridgeID)
-        .send(`${bot.username} is accepting TP Request from ${username}!`);
+      // client.channels.cache
+      //   .get(config.bridgeID)
+      //   .send(`${bot.username} is accepting TP Request from ${username}!`);
       return (
         bot.chat(`/msg ${username} Auto Accepting..`),
         bot.chat(`/tpy ${username}`)
@@ -141,7 +141,8 @@ function bindEvents(bot) {
   //=====================
   function log(msg, color, user) {
     if (bot.players[user].uuid != undefined) {
-      client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
+      console.log(`${msg}`)
+      // client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
     }
   }
 
@@ -150,9 +151,9 @@ function bindEvents(bot) {
   //==================
   bot.on("whisper", (username, message) => {
     if (!bot.players[username]) return;
-    client.channels.cache
-      .get(config.bridgeID)
-      .send(`${username} w> ${message}`);
+    // client.channels.cache
+    //   .get(config.bridgeID)
+    //   .send(`${username} w> ${message}`);
 
       if (message == "testies") {
         bot.chat(`/tpa ${username}`)
