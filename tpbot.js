@@ -1,4 +1,4 @@
-const config = require("./config.json");
+econst config = require("./config.json");
 const mineflayer = require("mineflayer");
 const { listenerCount } = require("process");
 var prefix = config.prefix;
@@ -12,28 +12,28 @@ const roundToHundredth = (value) => {
   return Number(value.toFixed(2));
 };
 
-// Discord
-// const Discord = require("discord.js");
-// const { Client, GatewayIntentBits } = require("discord.js");
+Discord;
+const Discord = require("discord.js");
+const { Client, GatewayIntentBits } = require("discord.js");
 
-// const client = new Client({
-//   intents: [
-//     GatewayIntentBits.Guilds,
-//     GatewayIntentBits.GuildMessages,
-//     GatewayIntentBits.GuildMessageReactions,
-//     GatewayIntentBits.GuildMembers,
-//     GatewayIntentBits.GuildMessageTyping,
-//     GatewayIntentBits.DirectMessages,
-//     GatewayIntentBits.DirectMessageReactions,
-//     GatewayIntentBits.DirectMessageTyping,
-//   ],
-// });
-// client.commands = new Discord.Collection();
-// client.on("ready", () => {
-//   console.log("Bot online!".blue);
-//   client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
-// });
-// client.login(config.token);
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessageTyping,
+    GatewayIntentBits.DirectMessages,
+    GatewayIntentBits.DirectMessageReactions,
+    GatewayIntentBits.DirectMessageTyping,
+  ],
+});
+client.commands = new Discord.Collection();
+client.on("ready", () => {
+  console.log("Bot online!".blue);
+  client.user.setActivity(`0b0t.org `, { type: "PLAYING" });
+});
+client.login(config.token);
 
 // Mineflayer setttings
 let options = {
@@ -66,7 +66,7 @@ function bindEvents(bot) {
     setTimeout(() => {
       console.log(`──────────────────────────────────────────`.blue);
     }, 4);
-    // client.channels.cache.get(config.bridgeID).send(`${bot.username} Online!`);
+    client.channels.cache.get(config.bridgeID).send(`${bot.username} Online!`);
   });
 
   //=================
@@ -117,7 +117,7 @@ function bindEvents(bot) {
   function log(msg, color, user) {
     if (bot.players[user].uuid != undefined) {
       console.log(`${msg}`);
-      // client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
+      client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
     }
   }
 
@@ -137,10 +137,10 @@ function bindEvents(bot) {
     console.log(`TP Request from ${username}`);
     uuid(bot.username, (id) => {
       if (config.whitelist_uuid.includes(id)) {
-        // client.channels.cache
-        //   .get(config.bridgeID)
-        //   .send(`${bot.username} is accepting TP Request from ${username}!`);
-        console.log(`accepting TP Request from ${username}!`)
+        client.channels.cache
+          .get(config.bridgeID)
+          .send(`${bot.username} is accepting TP Request from ${username}!`);
+        console.log(`accepting TP Request from ${username}!`);
         return (
           bot.chat(`/msg ${username} Auto Accepting..`),
           bot.chat(`/tpy ${username}`)
@@ -159,9 +159,9 @@ function bindEvents(bot) {
       uuid(bot.username, (id) => {
         if (!config.whitelist_uuid.includes(id)) {
           console.log(`ALARM: ${entity.username} -> ${entity.position}`);
-          // client.channels.cache
-          //   .get(config.bridgeID)
-          //   .send(`ALARM: ${entity.username} -> ${entity.position}`);
+          client.channels.cache
+            .get(config.bridgeID)
+            .send(`ALARM: ${entity.username} -> ${entity.position}`);
         }
       });
     }
@@ -175,9 +175,9 @@ function bindEvents(bot) {
 
     // Log
     console.log(`${username} w> ${message}`);
-    // client.channels.cache
-    //   .get(config.bridgeID)
-    //   .send(`${username} w> ${message}`);
+    client.channels.cache
+      .get(config.bridgeID)
+      .send(`${username} w> ${message}`);
 
     // Verify
     uuid(bot.username, (id) => {
