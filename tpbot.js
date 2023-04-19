@@ -1,16 +1,6 @@
 const config = require('./config.json')
 const mineflayer = require('mineflayer')
-const { listenerCount } = require('process')
-const prefix = config.prefix
-const { pathfinder, Movements } = require('mineflayer-pathfinder')
-const { GoalXZ } = require('mineflayer-pathfinder').goals
-const mcData = require('minecraft-data')('1.12.2')
 const colors = require('colors')
-const tpsPlugin = require('mineflayer-tps')(mineflayer)
-const fetch = require('node-fetch')
-const roundToHundredth = (value) => {
-  return Number(value.toFixed(2))
-}
 
 // Discord
 const Discord = require('discord.js')
@@ -74,7 +64,7 @@ function bindEvents (bot) {
   //= ================
   bot.on('error', function (err) {
     console.log('Error attempting to reconnect: ' + err.errno + '.')
-    if (err.code == undefined) {
+    if (err.code === undefined) {
       console.log(
         'Invalid credentials OR bot needs to wait because it relogged too quickly.'
       )
@@ -115,7 +105,7 @@ function bindEvents (bot) {
   // Log function
   //= ====================
   function log (msg, color, user) {
-    if (bot.players[user].uuid != undefined) {
+    if (bot.players[user].uuid !== undefined) {
       console.log(`${msg}`)
       client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`)
     }
@@ -154,8 +144,8 @@ function bindEvents (bot) {
   //= =================
 
   bot.on('entitySpawn', (entity) => {
-    if (bot.username == entity.username) return
-    if (entity.type == 'player') {
+    if (bot.username === entity.username) return
+    if (entity.type === 'player') {
       uuid(bot.username, (id) => {
         if (!config.whitelist_uuid.includes(id)) {
           console.log(`ALARM: ${entity.username} -> ${entity.position}`)
@@ -182,12 +172,12 @@ function bindEvents (bot) {
     // Verify
     uuid(bot.username, (id) => {
       if (config.whitelist_uuid.includes(id)) {
-        if (message == 'kill') {
+        if (message === 'kill') {
           bot.chat(`/w ${username} Terminating Bot`)
           return bot.end()
         }
 
-        if (message == 'tpa') {
+        if (message === 'tpa') {
           bot.chat(`/tpa ${username}`)
         }
       }
