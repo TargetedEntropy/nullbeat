@@ -97,6 +97,30 @@ function bindEvents(bot) {
     client.login(config.token);
   }
 
+  //=======================
+  // UUID Function
+  //=======================
+  function uuid(username, callback) {
+    const dash = require("add-dashes-to-uuid");
+    var MojangAPI = require("mojang-api");
+    var date = new Date();
+    MojangAPI.uuidAt(username, date, function (err, res) {
+      if (err) console.log(`err: ${err}`);
+      else var dashuuid = dash(res.id);
+      callback(dashuuid);
+    });
+  }
+
+  //=====================
+  // Log function
+  //=====================
+  function log(msg, color, user) {
+    if (bot.players[user].uuid != undefined) {
+      console.log(`${msg}`);
+      // client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
+    }
+  }
+
   //================
   // Chat Patterns
   //================
@@ -110,61 +134,63 @@ function bindEvents(bot) {
   // Tpa to bot
   //=======================
   bot.on("tpRequest", function (username) {
-    console.log("TP Request");
-    if (config.whitelist.includes(username)) {
-      // client.channels.cache
-      //   .get(config.bridgeID)
-      //   .send(`${bot.username} is accepting TP Request from ${username}!`);
-      return (
-        bot.chat(`/msg ${username} Auto Accepting..`),
-        bot.chat(`/tpy ${username}`)
-      );
-    }
+    console.log(`TP Request from ${username}`);
+    uuid(bot.username, (id) => {
+      if (config.whitelist_uuid.includes(id)) {
+        // client.channels.cache
+        //   .get(config.bridgeID)
+        //   .send(`${bot.username} is accepting TP Request from ${username}!`);
+        console.log(`accepting TP Request from ${username}!`)
+        return (
+          bot.chat(`/msg ${username} Auto Accepting..`),
+          bot.chat(`/tpy ${username}`)
+        );
+      }
+    });
   });
 
-  //=======================
-  // UUID Function
-  //=======================
-  function uuid(username, callback) {
-    const dash = require("add-dashes-to-uuid");
-    var MojangAPI = require("mojang-api");
-    var date = new Date();
-    MojangAPI.uuidAt(username, date, function (err, res) {
-      if (err) console.log(err);
-      else var dashuuid = dash(res.id);
-      callback(dashuuid);
-    });
-  }
+  //==================
+  // Stalker Function
+  //==================
 
-  //=====================
-  // Log function
-  //=====================
-  function log(msg, color, user) {
-    if (bot.players[user].uuid != undefined) {
-      console.log(`${msg}`)
-      // client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
+  bot.on("entitySpawn", (entity) => {
+    if (bot.username == entity.username) return;
+    if (entity.type == "player") {
+      uuid(bot.username, (id) => {
+        if (!config.whitelist_uuid.includes(id)) {
+          console.log(`ALARM: ${entity.username} -> ${entity.position}`);
+          // client.channels.cache
+          //   .get(config.bridgeID)
+          //   .send(`ALARM: ${entity.username} -> ${entity.position}`);
+        }
+      });
     }
-  }
+  });
 
   //==================
   // Whisper Function
   //==================
   bot.on("whisper", (username, message) => {
     if (!bot.players[username]) return;
+
+    // Log
+    console.log(`${username} w> ${message}`);
     // client.channels.cache
     //   .get(config.bridgeID)
     //   .send(`${username} w> ${message}`);
 
-      if (message == "testies") {
-        bot.chat(`/tpa ${username}`)
-      }
-
-      if (config.whitelist.includes(username)) {
+    // Verify
+    uuid(bot.username, (id) => {
+      if (config.whitelist_uuid.includes(id)) {
         if (message == "kill") {
-            bot.chat(`/w ${username} Terminating Bot`)
-            return bot.end();
+          bot.chat(`/w ${username} Terminating Bot`);
+          return bot.end();
+        }
+
+        if (message == "tpa") {
+          bot.chat(`/tpa ${username}`);
         }
       }
+    });
   });
-
 }
