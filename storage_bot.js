@@ -29,8 +29,9 @@ client.login(config.token);
 
 // Mineflayer setttings
 const options = {
-  host: "6b6t.org", // 0b0t.org
+  // host: "6b6t.org", // 0b0t.org
   port: 25565,
+  host: "10.0.0.39",
   username: `${config.email}`,
   auth: "microsoft",
   version: "1.19.2",
@@ -43,11 +44,7 @@ bindEvents(bot);
 let chest, itemsToDeposit;
 
 function bindEvents(bot) {
-  // bot.on("spawn", () => {
-  //   setTimeout(() => {
-  //     openEChest();
-  //   }, 1000);
-  // });
+
 
   //= ================
   // Console Login
@@ -116,6 +113,22 @@ function bindEvents(bot) {
     client.login(config.token);
   }
 
+    bot.on("spawn", () => {
+    setTimeout(() => {
+      openEChest();
+    }, 1000);
+  });
+
+  async function publishEchest() {
+    // this uploads the contents of the echest
+
+    items = openEChest();
+    
+
+
+
+  }
+
   async function openEChest() {
     const chestToOpen = bot.findBlock({
       matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
@@ -123,20 +136,25 @@ function bindEvents(bot) {
     });
 
     chest = await bot.openChest(chestToOpen);
-    // itemsToDeposit = bot.inventory.items();
-    //      depositItems(itemsToDeposit);
     items = chest.containerItems();
-    
     items.forEach(item => {
-      // const { parsed, type } = nbt.parse(item.nbt.value)
-      const simplifiedNbt = nbt.simplify(item.nbt);
-      console.log(simplifiedNbt.display);
-      // console.log('JSON serialized', JSON.stringify(result, null, 2))
-      // console.log(item.customName());
-      // console.log(item.nbt.value);
-    });
+      console.log("--------------------------");
+      console.log(item);
+      console.log("------");
+      if (item.nbt !== null && item.name.includes('shulker_box')) {
+        const shulker_name = JSON.parse(nbt.simplify(item.nbt.value.display).Name).text;
+        console.log(`ShulkerName: ${shulker_name}`);
+        console.log("------");
+        console.log(nbt.simplify(item.nbt.value.BlockEntityTag).Items);
+        console.log("--------------------------");
+        var obj = new Object();
+        obj.item_name = shulker_name;
+        obj.item_contents  = nbt.simplify(item.nbt.value.BlockEntityTag).Items;
+        var jsonString= JSON.stringify(obj);
+        console.log(jsonString);
+      }
 
-    // console.log(items);
+   });
     return items;
     
   }
@@ -144,6 +162,8 @@ function bindEvents(bot) {
   //= ======================
   // depositItems Function
   //= ======================
+      // itemsToDeposit = bot.inventory.items();
+    //      depositItems(itemsToDeposit);
   async function depositItems(itemsToDeposit) {
     if (itemsToDeposit.length === 0) {
       chest.close();
@@ -291,7 +311,7 @@ function bindEvents(bot) {
         if (message === "get_echest") {
           console.log(`${username} get_echest`);
           setTimeout(() => {
-            openEChest();
+            publishEchest();
           }, 1000);
         }
       }
