@@ -1,51 +1,40 @@
 const config = require("./config.json");
 const mineflayer = require("mineflayer");
 const colors = require("colors");
+const { pathfinder, Movements } = require("mineflayer-pathfinder");
+const { GoalXZ } = require("mineflayer-pathfinder").goals;
 
-// Discord
-const Discord = require("discord.js");
-const { Client, GatewayIntentBits } = require("discord.js");
+const axios = require("axios");
 
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessageTyping,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.DirectMessageReactions,
-    GatewayIntentBits.DirectMessageTyping,
-  ],
-});
-client.commands = new Discord.Collection();
-client.on("ready", () => {
-  console.log("Bot online!".blue);
-  client.user.setActivity("0b0t.org ", {
-    type: "PLAYING",
-  });
-});
-client.login(config.token);
+const mineflayerViewer = require("prismarine-viewer").mineflayer;
 
 // Mineflayer setttings
+// const options = {
+//   // host: "6b6t.org", // 0b0t.org
+//   port: 25565,
+//   host: "10.0.0.39",
+//   username: `${config.email}`,
+//   auth: "microsoft",
+//   version: "1.19.2",
+// };
+
 const options = {
-  // host: "6b6t.org", // 0b0t.org
+  host: "6b6t.org",
   port: 25565,
-  host: "10.0.0.39",
-  username: `${config.email}`,
-  auth: "microsoft",
+  username: "MagicStorage0001",
+  auth: "offline",
   version: "1.19.2",
 };
 
 const bot = mineflayer.createBot(options);
 const mcData = require("minecraft-data")(bot.version);
-const nbt = require('prismarine-nbt')
+const nbt = require("prismarine-nbt");
 bindEvents(bot);
 let chest, itemsToDeposit;
 
+let temp_nbt;
+
 function bindEvents(bot) {
-
-
   //= ================
   // Console Login
   //= ================
@@ -65,7 +54,6 @@ function bindEvents(bot) {
     setTimeout(() => {
       console.log("──────────────────────────────────────────".blue);
     }, 4);
-    client.channels.cache.get(config.channelID).send(`${bot.username} Online!`);
   });
 
   //= ================
@@ -96,39 +84,52 @@ function bindEvents(bot) {
     console.error(err);
   });
 
-  bot.on("entitySpawn", (entity) => {
-    if (entity.type === "player") {
-      console.log(`Player Spawned ${entity.username}`.red);
-      client.channels.cache
-        .get(config.channelID)
-        .send(`Player Spawned ${entity.username}`);
-    }
-  });
-
   function relog() {
-    client.destroy();
     console.log("Attempting to reconnect...");
     bot = mineflayer.createBot(options);
     bindEvents(bot);
-    client.login(config.token);
   }
+  bot.loadPlugin(pathfinder);
+  const defaultMove = new Movements(bot, mcData);
 
-    bot.on("spawn", () => {
+  bot.on("spawn", () => {
     setTimeout(() => {
-      openEChest();
-    }, 1000);
+      if (bot.entity.position.y === 100) {
+        console.log("bot in lobby");
+
+        console.log("Its time to move");
+
+        const x = parseFloat(-1000, 10);
+        const z = parseFloat(-988, 10);
+        console.log(`x: ${x}`);
+        console.log(`z: ${z}`);
+        bot.pathfinder.setMovements(defaultMove);
+        bot.pathfinder.setGoal(new GoalXZ(x, z));
+        console.log("Navigating");
+      }
+    }, 5000);
   });
 
-  async function publishEchest() {
-    // this uploads the contents of the echest
+  bot.on("systemChat", (data) => {
+    console.log(`System: ${data}`);
+  });
 
-    items = openEChest();
-    
-
-
-
+  function httpPost(endpoint, content) {
+    return axios
+      .post(endpoint, content, {
+        headers: {
+          "Content-Type": "application/json", // You can adjust the content type as needed
+        },
+      })
+      .then((response) => {
+        return response.data;
+      });
   }
 
+  // async function publishEchest() {
+  //   // this uploads the contents of the echest
+  //   items = openEChest();
+  // }
   async function openEChest() {
     const chestToOpen = bot.findBlock({
       matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
@@ -137,33 +138,91 @@ function bindEvents(bot) {
 
     chest = await bot.openChest(chestToOpen);
     items = chest.containerItems();
-    items.forEach(item => {
+    items.forEach((item) => {
       console.log("--------------------------");
       console.log(item);
       console.log("------");
-      if (item.nbt !== null && item.name.includes('shulker_box')) {
-        const shulker_name = JSON.parse(nbt.simplify(item.nbt.value.display).Name).text;
+      if (item.nbt !== null && item.name.includes("shulker_box")) {
+        const shulker_name = JSON.parse(
+          nbt.simplify(item.nbt.value.display).Name
+        ).text;
         console.log(`ShulkerName: ${shulker_name}`);
         console.log("------");
         console.log(nbt.simplify(item.nbt.value.BlockEntityTag).Items);
         console.log("--------------------------");
         var obj = new Object();
         obj.item_name = shulker_name;
-        obj.item_contents  = nbt.simplify(item.nbt.value.BlockEntityTag).Items;
-        var jsonString= JSON.stringify(obj);
+        obj.item_contents = nbt.simplify(item.nbt.value.BlockEntityTag).Items;
+        obj.character_name = bot.username;
+        var jsonString = JSON.stringify(obj);
         console.log(jsonString);
-      }
 
-   });
+        const endpoint = "http://10.0.0.39:8000/item"; // Replace with your API endpoint
+        // const data = { item_name: 'value1', key2: 'value2' }; // Replace with your data
+
+        httpPost(endpoint, jsonString)
+          .then((responseData) => {
+            console.log("Response data:", responseData);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    });
     return items;
-    
+  }
+
+  async function publishEchest() {
+    const chestToOpen = bot.findBlock({
+      matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
+      maxDistance: 3,
+    });
+
+    chest = await bot.openChest(chestToOpen);
+    items = chest.containerItems();
+    items.forEach((item) => {
+      console.log("--------------------------");
+      console.log(item);
+      console.log("------");
+      if (item.nbt !== null && item.name.includes("shulker_box")) {
+        const shulker_name = JSON.parse(
+          nbt.simplify(item.nbt.value.display).Name
+        ).text;
+        console.log(`ShulkerName: ${shulker_name}`);
+        console.log("------");
+        console.log(JSON.stringify(nbt.simplify(item.nbt)));
+        console.log("------");
+        console.log(JSON.stringify(item.nbt));
+        console.log("--------------------------");
+        temp_nbt = item.nbt;
+        var obj = new Object();
+        obj.item_name = shulker_name;
+        obj.item_contents = nbt.simplify(item.nbt.value.BlockEntityTag).Items;
+        obj.character_name = bot.username;
+        obj.nbt_data = JSON.stringify(item.nbt);
+        var jsonString = JSON.stringify(obj);
+        console.log(jsonString);
+
+        const endpoint = "http://10.0.0.39:8000/item"; // Replace with your API endpoint
+        // const data = { item_name: 'value1', key2: 'value2' }; // Replace with your data
+
+        httpPost(endpoint, jsonString)
+          .then((responseData) => {
+            console.log("Response data:", responseData);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    });
+    return items;
   }
 
   //= ======================
   // depositItems Function
   //= ======================
-      // itemsToDeposit = bot.inventory.items();
-    //      depositItems(itemsToDeposit);
+  // itemsToDeposit = bot.inventory.items();
+  //      depositItems(itemsToDeposit);
   async function depositItems(itemsToDeposit) {
     if (itemsToDeposit.length === 0) {
       chest.close();
@@ -182,50 +241,64 @@ function bindEvents(bot) {
   }
 
   //= ======================
-  // UUID Function
+  // withdrawItem Function
   //= ======================
-  async function withdrawItem(name, amount) {
+  async function withdrawItem(name, amount, nbt) {
     const item = itemByName(chest.containerItems(), name);
     if (item) {
       try {
-        await chest.withdraw(item.type, null, amount);
-        bot.chat(`withdrew ${amount} ${item.name}`);
+        await chest.withdraw(item.type, null, amount, nbt);
+        console.log(`withdrew ${amount} ${name}`);
       } catch (err) {
-        bot.chat(`unable to withdraw ${amount} ${item.name}`);
+        console.log(`unable to withdraw ${amount} ${name}`);
       }
     } else {
-      bot.chat(`unknown item ${name}`);
+      console.log(`unknown item ${name}`);
     }
   }
 
+  function itemByName(items, name) {
+    let item;
+    let i;
+    for (i = 0; i < items.length; ++i) {
+      item = items[i];
+      if (item && item.name === name) return item;
+    }
+    return null;
+  }
+
   //= ======================
-  // UUID Function
+  // depositItem Function
   //= ======================
   async function depositItem(name, amount) {
     const item = itemByName(chest.items(), name);
     if (item) {
       try {
         await chest.deposit(item.type, null, amount);
-        bot.chat(`deposited ${amount} ${item.name}`);
+        console.log(`deposited ${amount} ${item.name}`);
       } catch (err) {
-        bot.chat(`unable to deposit ${amount} ${item.name}`);
+        console.log(`unable to deposit ${amount} ${item.name}`);
       }
     } else {
-      bot.chat(`unknown item ${name}`);
+      console.log(`unknown item ${name}`);
     }
   }
 
-  //= ======================
-  // UUID Function
-  //= ======================
-  function uuid(username, callback) {
-    const dash = require("add-dashes-to-uuid");
-    const MojangAPI = require("mojang-api");
-    const date = new Date();
-    MojangAPI.uuidAt(username, date, function (err, res) {
-      if (err) console.log(`err: ${err}`);
-      else var dashuuid = dash(res.id);
-      callback(dashuuid);
+  async function depositInventory(items = bot.inventory.items()) {
+    if (!items) {
+      return false;
+    }
+
+    const chestToOpen = bot.findBlock({
+      matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
+      maxDistance: 3,
+    });
+
+    chest = await bot.openChest(chestToOpen);
+    chest_items = chest.containerItems();
+
+    items.forEach((item) => {
+      depositItem(item.name, item.count);
     });
   }
 
@@ -233,53 +306,8 @@ function bindEvents(bot) {
   // Log function
   //= ====================
   function log(msg, color, user) {
-    if (bot.players[user].uuid !== undefined) {
-      console.log(`${msg}`);
-      client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`);
-    }
+    console.log(`${msg}`);
   }
-
-  //= ===============
-  // Chat Patterns
-  //= ===============
-  bot.chatAddPattern(
-    /^([a-zA-Z0-9_]{3,16}) wants to teleport to you\.$/,
-    "tpRequest",
-    "tpa request"
-  );
-
-  //= ======================
-  // Tpa to bot
-  //= ======================
-  bot.on("tpRequest", function (username) {
-    console.log(`TP Request from ${username}`);
-    uuid(bot.username, (id) => {
-      if (config.whitelist_uuid.includes(id)) {
-        client.channels.cache
-          .get(config.channelID)
-          .send(`${bot.username} is accepting TP Request from ${username}!`);
-        console.log(`accepting TP Request from ${username}!`);
-        return (
-          bot.chat(`/msg ${username} Auto Accepting..`),
-          bot.chat(`/tpy ${username}`)
-        );
-      }
-    });
-  });
-
-  //= =================
-  // Stalker Function
-  //= =================
-  bot.on("entitySpawn", (entity) => {
-    if (bot.username === entity.username) return;
-    if (entity.type === "player") {
-      uuid(bot.username, (id) => {
-        if (!config.whitelist_uuid.includes(id)) {
-          log(`ALARM: ${entity.username} -> ${entity.position}`);
-        }
-      });
-    }
-  });
 
   //= =================
   // Whisper Function
@@ -289,32 +317,42 @@ function bindEvents(bot) {
 
     // Log
     console.log(`${username} w> ${message}`);
-    client.channels.cache
-      .get(config.channelID)
-      .send(`${username} w> ${message}`);
 
     // Verify
-    uuid(bot.username, (id) => {
-      if (config.whitelist_uuid.includes(id)) {
-        if (message === "kill") {
-          bot.chat(`/w ${username} Terminating Bot`);
-          return bot.end();
-        }
-
-        if (message === "tpa") {
-          client.channels.cache
-            .get(config.channelID)
-            .send(`Sent TPA request to ${username}`);
-          bot.chat(`/tpa ${username}`);
-        }
-
-        if (message === "get_echest") {
-          console.log(`${username} get_echest`);
-          setTimeout(() => {
-            publishEchest();
-          }, 1000);
-        }
+    if (username == "robbyfox") {
+      if (message === "get_echest") {
+        console.log(`${username} get_echest`);
+        setTimeout(() => {
+          publishEchest();
+        }, 1000);
       }
-    });
+
+      if (message === "pop") {
+        console.log(`${username} pop`);
+        setTimeout(() => {
+          getItem();
+        }, 1000);
+      }
+      if (message === "drop") {
+        console.log(`${username} pop`);
+        setTimeout(() => {
+          depositInventory();
+        }, 1000);
+      }
+    }
   });
+
+  async function getItem() {
+    const chestToOpen = bot.findBlock({
+      matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
+      maxDistance: 3,
+    });
+
+    chest = await bot.openChest(chestToOpen);
+    items = chest.containerItems();
+
+    withdrawItem("light_gray_shulker_box", 1, temp_nbt);
+
+    return items;
+  }
 }
