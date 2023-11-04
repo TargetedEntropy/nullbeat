@@ -1,10 +1,22 @@
 const config = require('./config.json')
 const mineflayer = require('mineflayer')
+const { listenerCount } = require('process')
+const prefix = config.prefix
+const { pathfinder, Movements } = require('mineflayer-pathfinder')
+const { GoalXZ } = require('mineflayer-pathfinder').goals
+const mcData = require('minecraft-data')('1.12.2')
 const colors = require('colors')
+// const prettyMilliseconds = require("pretty-ms");
+const tpsPlugin = require('mineflayer-tps')(mineflayer)
+const fetch = require('node-fetch')
+const roundToHundredth = (value) => {
+  return Number(value.toFixed(2))
+}
 
 // Discord
 const Discord = require('discord.js')
 const { Client, GatewayIntentBits } = require('discord.js')
+const { Console } = require('console')
 
 const client = new Client({
   intents: [
@@ -20,21 +32,22 @@ const client = new Client({
 })
 client.commands = new Discord.Collection()
 client.on('ready', () => {
-  console.log('Bot online!'.blue)
+  console.log('Kitbot online!'.blue)
   client.user.setActivity('0b0t.org ', { type: 'PLAYING' })
 })
 client.login(config.token)
 
 // Mineflayer setttings
 const options = {
-  host: '116.203.85.245', // 0b0t.org
+  host: `${config.server}`,
   port: 25565,
   username: `${config.email}`,
   auth: 'microsoft',
-  version: '1.12.2'
+  version: `${config.server_version}`
 }
 
 const bot = mineflayer.createBot(options)
+
 bindEvents(bot)
 function bindEvents (bot) {
   //= ================
@@ -56,7 +69,7 @@ function bindEvents (bot) {
     setTimeout(() => {
       console.log('──────────────────────────────────────────'.blue)
     }, 4)
-    client.channels.cache.get(config.bridgeID).send(`${bot.username} Online!`)
+    client.channels.cache.get(config.channelID).send(`${bot.username} Online!`)
   })
 
   //= ================
@@ -95,25 +108,20 @@ function bindEvents (bot) {
     const MojangAPI = require('mojang-api')
     const date = new Date()
     MojangAPI.uuidAt(username, date, function (err, res) {
-      if (err) console.log(`err: ${err}`)
+      if (err) console.log(err)
       else var dashuuid = dash(res.id)
       callback(dashuuid)
     })
   }
 
-  //= ====================
-  // Log function
-  //= ====================
-  function log (msg, color, user) {
-    if (bot.players[user].uuid !== undefined) {
-      console.log(`${msg}`)
-      client.channels.cache.get(config.logsID).send(`Log: ${user} > ${msg}`)
-    }
-  }
-
   //= ===============
   // Chat Patterns
   //= ===============
+  bot.chatAddPattern(
+    /^Teleported to ([a-zA-Z0-9_]{3,16})!$/,
+    'tpaccepted',
+    'tpa accepted'
+  )
   bot.chatAddPattern(
     /^([a-zA-Z0-9_]{3,16}) wants to teleport to you\.$/,
     'tpRequest',
@@ -124,50 +132,28 @@ function bindEvents (bot) {
   // Tpa to bot
   //= ======================
   bot.on('tpRequest', function (username) {
-    console.log(`TP Request from ${username}`)
-    uuid(bot.username, (id) => {
-      if (config.whitelist_uuid.includes(id)) {
-        client.channels.cache
-          .get(config.bridgeID)
-          .send(`${bot.username} is accepting TP Request from ${username}!`)
-        console.log(`accepting TP Request from ${username}!`)
-        return (
-          bot.chat(`/msg ${username} Auto Accepting..`),
-          bot.chat(`/tpy ${username}`)
-        )
-      }
-    })
-  })
-
-  //= =================
-  // Stalker Function
-  //= =================
-
-  bot.on('entitySpawn', (entity) => {
-    if (bot.username === entity.username) return
-    if (entity.type === 'player') {
-      uuid(bot.username, (id) => {
-        if (!config.whitelist_uuid.includes(id)) {
-          console.log(`ALARM: ${entity.username} -> ${entity.position}`)
-          client.channels.cache
-            .get(config.bridgeID)
-            .send(`ALARM: ${entity.username} -> ${entity.position}`)
-        }
-      })
+    console.log('TP Request')
+    if (config.whitelist_uuid.includes(username)) {
+      client.channels.cache
+        .get(config.channelID)
+        .send(`${bot.username} is accepting TP Request from ${username}!`)
+      return (
+        bot.chat(`/msg ${username} Auto Accepting..`),
+        bot.chat(`/tpy ${username}`)
+      )
     }
   })
 
   //= =================
   // Whisper Function
   //= =================
+  bot.loadPlugin(pathfinder)
+  const defaultMove = new Movements(bot, mcData)
+
   bot.on('whisper', (username, message) => {
     if (!bot.players[username]) return
-
     // Log
     console.log(`${username} w> ${message}`)
-    client.channels.cache
-      .get(config.bridgeID)
-      .send(`${username} w> ${message}`)
 
     // Verify
     uuid(bot.username, (id) => {
@@ -182,5 +168,49 @@ function bindEvents (bot) {
         }
       }
     })
+  })
+
+  //= ===========================
+  // Kit Grabber
+  //= ===========================
+  bot.on('chat', function (username, message) {
+    if (message === '!kit') {
+      console.log(`Getting kit for ${username}`)
+      const x = parseFloat(config.kit_pos_x, 10)
+      const z = parseFloat(config.kit_pos_y, 10)
+      p = username
+      bot.pathfinder.setMovements(defaultMove)
+      bot.pathfinder.setGoal(new GoalXZ(x, z))
+      console.log('Navigating')
+    }
+  })
+
+  //= ================
+  // Tpa Event
+  //= ================
+  let p = ''
+  bot.on('goal_reached', () => {
+    bot.chat(`/tpa ${p}`)
+    bot.pathfinder.setGoal(null)
+  })
+
+  //= ================
+  // Kill on tp
+  //= ================
+  bot.on('tpaccepted', function (username) {
+    setTimeout(() => {
+      client.channels.cache
+        .get(config.channelID)
+        .send(`[Kit] Gave a kit to ${username} at ${bot.entity.position}`)
+    }, 500)
+    bot.chat('/kill')
+    console.log('bot /killed')
+
+    setTimeout(() => {
+      if (bot.entity.position.x !== config.bed_pos_x) {
+        bot.chat('/kill')
+        console.log('bot /killed by timer')
+      }
+    }, 15000)
   })
 }

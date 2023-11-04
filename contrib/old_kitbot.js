@@ -52,7 +52,7 @@ function bindEvents(bot) {
   // Bridge Discord to MC
   //=======================
   client.on("message", (msg) => {
-    if (msg.channel.id != config.bridgeID) return;
+    if (msg.channel.id != config.channelID) return;
     if (msg.author.bot) return;
     if (msg.content.startsWith("/")) {
       bot.chat(`${msg}`);
@@ -79,7 +79,7 @@ function bindEvents(bot) {
         .setColor("0x30f2cb")
         .setTimestamp()
         .setAuthor(`SERVER`);
-      client.channels.cache.get(config.bridgeID).send(embed);
+      client.channels.cache.get(config.channelID).send(embed);
       return;
     }
     if (username == bot.username) {
@@ -91,14 +91,14 @@ function bindEvents(bot) {
           username,
           `https://mc-heads.net/avatar/${bot.player.uuid}/512`
         );
-      client.channels.cache.get(config.bridgeID).send(embed);
+      client.channels.cache.get(config.channelID).send(embed);
       return;
     }
     if (!bot.players[username]) return;
     originalString = bot.players[username].uuid;
     newString = originalString.replace("-", "");
 
-    client.channels.cache.get(config.bridgeID).send(`${username}> ${message}`);
+    client.channels.cache.get(config.channelID).send(`${username}> ${message}`);
   });
   //==================
   // Whisper Function
@@ -114,7 +114,7 @@ function bindEvents(bot) {
         username + "whispered:",
         `https://mc-heads.net/avatar/${newString}/512`
       );
-    client.channels.cache.get(config.bridgeID).send("embed");
+    client.channels.cache.get(config.channelID).send("embed");
   });
   client.login(config.token);
   //=================

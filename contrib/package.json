@@ -1,10 +1,12 @@
 {
   "dependencies": {
     "add-dashes-to-uuid": "^1.0.0",
+    "axios": "^1.6.0",
     "colors": "^1.4.0",
     "discord.js": "^14.8.0",
     "gl": "file:../headless-gl",
     "mindflayer": "^0.1.0-alpha.1",
+    "minecraft-protocol-forge": "^1.0.0",
     "mineflayer": "^4.8.1",
     "mineflayer-pathfinder": "^2.4.2",
     "mineflayer-tps": "^1.0.1",
@@ -15,7 +17,7 @@
     "xi": "^0.0.1"
   },
   "devDependencies": {
-    "eslint": "^8.38.0",
+    "eslint": "^8.39.0",
     "eslint-config-standard": "^17.0.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.7.0",
