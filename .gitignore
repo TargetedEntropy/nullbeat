@@ -90,3 +90,5 @@ lerna-debug.log
 .DS_Store
 Thumbs.dbconfig.json
 config.json
+
+target/

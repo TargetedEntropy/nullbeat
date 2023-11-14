@@ -6,35 +6,20 @@ const { GoalXZ } = require("mineflayer-pathfinder").goals;
 
 const axios = require("axios");
 
-const mineflayerViewer = require("prismarine-viewer").mineflayer;
-
 // Mineflayer setttings
-// const options = {
-//   // host: "6b6t.org", // 0b0t.org
-//   port: 25565,
-//   host: "10.0.0.39",
-//   username: `${config.email}`,
-//   auth: "microsoft",
-//   version: "1.19.2",
-// };
-
 const options = {
-  host: "6b6t.org",
+  host: `${config.server}`,
   port: 25565,
-  username: "MagicStorage0001",
-  auth: "offline",
-  version: "1.19.2",
+  username: `${config.email}`,
+  auth: "microsoft",
+  version: `${config.server_version}`,
 };
 
 const bot = mineflayer.createBot(options);
 const mcData = require("minecraft-data")(bot.version);
 const nbt = require("prismarine-nbt");
 bindEvents(bot);
-let chest, itemsToDeposit;
-
-let temp_nbt;
-
-let bot_ready;
+let chest, temp_nbt;
 
 function bindEvents(bot) {
   //= ================
@@ -58,18 +43,6 @@ function bindEvents(bot) {
     }, 4);
   });
 
-  bot.once("spawn", () => {
-    mineflayerViewer(bot, { port: 3000 }); // Start the viewing server on port 3000
-
-    // Draw the path followed by the bot
-    const path = [bot.entity.position.clone()];
-    bot.on("move", () => {
-      if (path[path.length - 1].distanceTo(bot.entity.position) > 1) {
-        path.push(bot.entity.position.clone());
-        bot.viewer.drawLine("path", path);
-      }
-    });
-  });
   //= ================
   // Auto Relog
   //= ================
@@ -106,30 +79,11 @@ function bindEvents(bot) {
   bot.loadPlugin(pathfinder);
   const defaultMove = new Movements(bot, mcData);
 
-  function check_for_lobby() {
-    setTimeout(() => {
-      console.log(`Dimension: ${bot.game.dimension}`);
-      console.log(`Bot XZ: ${bot.entity.position.x}, ${bot.entity.position.z}`);
-      bot.chat("/login R2M44ke");
-      if (bot.entity.position.y === 100 && bot.game.dimension == "the_end") {
-        console.log("bot in lobby");
-
-        const x = parseFloat(-1000, 10);
-        const z = parseFloat(-988, 10);
-
-        bot.pathfinder.setMovements(defaultMove);
-        bot.pathfinder.setGoal(new GoalXZ(x, z));
-        console.log("Navigating");
-      }
-      bot_ready = true;
-    }, 10000);
-  }
-
   var func = function (i) {
     return function () {
       if (i >= 75) return;
 
-      if (bot_ready == true && bot.game.dimension == "overworld") {
+      if (bot.game.dimension == "overworld") {
         console.log("Bot is ready!");
 
         getJob();
@@ -140,15 +94,11 @@ function bindEvents(bot) {
   };
 
   bot.on("spawn", () => {
-    if (bot.game.dimension == "the_end") {
-      check_for_lobby();
-    } else {
-      setTimeout(func(0), 500);
-    }
+    setTimeout(func(0), 500);
   });
 
-async function processJobs(jsonBody) {
-    console.log(`Json: ${jsonBody}`)
+  async function processJobs(jsonBody) {
+    console.log(`Json: ${jsonBody}`);
     for (const job of jsonBody) {
       switch (job.job_type) {
         case "withdraw":
@@ -166,7 +116,13 @@ async function processJobs(jsonBody) {
           console.log("Publishing Echest");
           publishEchest();
           break;
-  
+
+        // case "exit":
+        //   // Execute the function for "deposit" job type
+        //   console.log("Bot Exiting");
+        //   bot.quit();
+        //   break;
+
         default:
           // Handle unknown job types
           console.error(`Unknown job_type: ${job.job_type}`);
@@ -175,12 +131,9 @@ async function processJobs(jsonBody) {
     }
   }
 
-
-
   async function getJob() {
     console.log("OH SHIT IM GETTINGJOBS");
     jobs = await fetchAndProcessJobs("http://10.0.0.39:8000/job");
-
   }
   function fetchAndProcessJobs(endpoint) {
     httpGet(endpoint)
@@ -213,7 +166,7 @@ async function processJobs(jsonBody) {
       });
   }
 
-  function httpPost(endpoint, content) {
+  async function httpPost(endpoint, content) {
     return axios
       .post(endpoint, content, {
         headers: {
@@ -225,11 +178,25 @@ async function processJobs(jsonBody) {
       });
   }
 
+  escape = function (str) {
+    return str
+      .replace(/[\\]/g, "\\\\")
+      .replace(/[\"]/g, '\\"')
+      .replace(/[\/]/g, "\\/")
+      .replace(/[\b]/g, "\\b")
+      .replace(/[\f]/g, "\\f")
+      .replace(/[\n]/g, "\\n")
+      .replace(/[\r]/g, "\\r")
+      .replace(/[\t]/g, "\\t");
+  };
+
   async function publishEchest() {
     const chestToOpen = bot.findBlock({
       matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
       maxDistance: 3,
     });
+    // await chestToOpen.GoalXZ();
+    console.log(`Chest: ${chestToOpen}`);
 
     chest = await bot.openChest(chestToOpen);
     items = chest.containerItems();
@@ -239,14 +206,15 @@ async function processJobs(jsonBody) {
       console.log("------");
       if (item.nbt !== null && item.name.includes("shulker_box")) {
         const shulker_name = JSON.parse(
-          nbt.simplify(item.nbt.value.display).Name
-        ).text;
+          JSON.stringify(item.nbt.value.display.value.Name.value)
+        );
         console.log(`ShulkerName: ${shulker_name}`);
-        console.log("------");
-        console.log(JSON.stringify(nbt.simplify(item.nbt)));
-        console.log("------");
-        console.log(JSON.stringify(item.nbt));
+        // console.log("------");
+        // console.log(JSON.stringify(nbt.simplify(item.nbt)));
+        // console.log("------");
+        // console.log(JSON.stringify(item.nbt));
         console.log("--------------------------");
+        console.log(`Stuff: ${item.nbt.value.display.value.Name.value}`);
         temp_nbt = item.nbt;
         var obj = new Object();
         obj.item_name = shulker_name;
@@ -259,15 +227,18 @@ async function processJobs(jsonBody) {
         const endpoint = "http://10.0.0.39:8000/item"; // Replace with your API endpoint
         // const data = { item_name: 'value1', key2: 'value2' }; // Replace with your data
 
-        httpPost(endpoint, jsonString)
-          .then((responseData) => {
-            console.log("Response data:", responseData);
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
+        setTimeout(() => {
+          httpPost(endpoint, jsonString)
+            .then((responseData) => {
+              console.log("Response data:", responseData);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        }, 1000);
       }
     });
+    bot.quit();
     return items;
   }
 
