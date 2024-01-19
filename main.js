@@ -3,6 +3,10 @@ const mineflayer = require("mineflayer");
 const colors = require("colors");
 const { pathfinder, Movements } = require("mineflayer-pathfinder");
 const { GoalXZ } = require("mineflayer-pathfinder").goals;
+const portfinder = require("portfinder");
+const mineflayerViewer = require("prismarine-viewer").mineflayer;
+
+const consul = require("consul");
 
 const axios = require("axios");
 
@@ -20,6 +24,14 @@ const mcData = require("minecraft-data")(bot.version);
 const nbt = require("prismarine-nbt");
 bindEvents(bot);
 let chest, temp_nbt;
+
+port = getPort(10000, 65000);
+
+mineflayerViewer(bot, { port: port });
+
+function getPort(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
 
 function bindEvents(bot) {
   //= ================
@@ -43,6 +55,24 @@ function bindEvents(bot) {
     }, 4);
   });
 
+  bot.once("spawn", () => {
+
+    const serviceName = bot.username;
+    const servicePort = port;
+
+    const consulClient = new consul({ host: "10.0.0.39" });
+
+    consulClient.agent.service.register(
+      {
+        name: serviceName,
+        port: servicePort,
+      },
+      () => {
+        console.log(`Service ${serviceName} registered`);
+      }
+    );
+  });
+
   //= ================
   // Auto Relog
   //= ================
@@ -64,7 +94,7 @@ function bindEvents(bot) {
 
   bot.on("death", function () {
     console.log(`I Died.`.red);
-    setTimeout(relog, 30000);
+    setTimeout(relog, 60000);
   });
 
   bot.on("error", (err) => {
@@ -93,8 +123,12 @@ function bindEvents(bot) {
     };
   };
 
+  // bot.on("spawn", () => {
+  //   setTimeout(func(0), 500);
+  // });
+
   bot.on("spawn", () => {
-    setTimeout(func(0), 500);
+    console.log("Bot Spawned");
   });
 
   async function processJobs(jsonBody) {
@@ -117,11 +151,6 @@ function bindEvents(bot) {
           publishEchest();
           break;
 
-        // case "exit":
-        //   // Execute the function for "deposit" job type
-        //   console.log("Bot Exiting");
-        //   bot.quit();
-        //   break;
 
         default:
           // Handle unknown job types
@@ -209,10 +238,6 @@ function bindEvents(bot) {
           JSON.stringify(item.nbt.value.display.value.Name.value)
         );
         console.log(`ShulkerName: ${shulker_name}`);
-        // console.log("------");
-        // console.log(JSON.stringify(nbt.simplify(item.nbt)));
-        // console.log("------");
-        // console.log(JSON.stringify(item.nbt));
         console.log("--------------------------");
         console.log(`Stuff: ${item.nbt.value.display.value.Name.value}`);
         temp_nbt = item.nbt;

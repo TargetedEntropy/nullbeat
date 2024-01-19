@@ -92,3 +92,5 @@ Thumbs.dbconfig.json
 config.json
 
 target/
+
+run.sh
