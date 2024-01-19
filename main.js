@@ -27,6 +27,9 @@ let chest, temp_nbt;
 
 port = getPort(10000, 65000);
 
+let apiEndpoint = "http://10.0.0.39:8000";
+
+
 mineflayerViewer(bot, { port: port });
 
 function getPort(min, max) {
@@ -162,7 +165,7 @@ function bindEvents(bot) {
 
   async function getJob() {
     console.log("OH SHIT IM GETTINGJOBS");
-    jobs = await fetchAndProcessJobs("http://10.0.0.39:8000/job");
+    jobs = await fetchAndProcessJobs("${apiEndpoint}/jobs");
   }
   function fetchAndProcessJobs(endpoint) {
     httpGet(endpoint)
@@ -177,7 +180,7 @@ function bindEvents(bot) {
     return fetch(endpoint, {
       method: "GET",
       headers: {
-        "Content-Type": "application/json", // You can adjust the content type as needed
+        "Content-Type": "application/json", 
       },
     })
       .then((response) => {
@@ -199,7 +202,7 @@ function bindEvents(bot) {
     return axios
       .post(endpoint, content, {
         headers: {
-          "Content-Type": "application/json", // You can adjust the content type as needed
+          "Content-Type": "application/json", 
         },
       })
       .then((response) => {
@@ -224,7 +227,7 @@ function bindEvents(bot) {
       matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
       maxDistance: 3,
     });
-    // await chestToOpen.GoalXZ();
+
     console.log(`Chest: ${chestToOpen}`);
 
     chest = await bot.openChest(chestToOpen);
@@ -249,8 +252,7 @@ function bindEvents(bot) {
         var jsonString = JSON.stringify(obj);
         console.log(jsonString);
 
-        const endpoint = "http://10.0.0.39:8000/item"; // Replace with your API endpoint
-        // const data = { item_name: 'value1', key2: 'value2' }; // Replace with your data
+        const endpoint = "${apiEndpoint}/item";
 
         setTimeout(() => {
           httpPost(endpoint, jsonString)
@@ -270,8 +272,6 @@ function bindEvents(bot) {
   //= ======================
   // depositItems Function
   //= ======================
-  // itemsToDeposit = bot.inventory.items();
-  //      depositItems(itemsToDeposit);
   async function depositItems(itemsToDeposit) {
     if (itemsToDeposit.length === 0) {
       chest.close();
