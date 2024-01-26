@@ -126,9 +126,9 @@ function bindEvents(bot) {
     };
   };
 
-  // bot.on("spawn", () => {
-  //   setTimeout(func(0), 500);
-  // });
+  bot.on("spawn", () => {
+    setTimeout(func(0), 500);
+  });
 
   bot.on("spawn", () => {
     console.log("Bot Spawned");
@@ -164,7 +164,6 @@ function bindEvents(bot) {
   }
 
   async function getJob() {
-    console.log("OH SHIT IM GETTINGJOBS");
     jobs = await fetchAndProcessJobs("${apiEndpoint}/jobs");
   }
   function fetchAndProcessJobs(endpoint) {
@@ -368,7 +367,7 @@ function bindEvents(bot) {
     console.log(`${username} w> ${message}`);
 
     // Verify
-    if (username == "robbyfox") {
+    if (username == "Admin") {
       if (message === "get_echest") {
         console.log(`${username} get_echest`);
         setTimeout(() => {
@@ -376,10 +375,9 @@ function bindEvents(bot) {
         }, 1000);
       }
 
-      if (message === "pop") {
-        console.log(`${username} pop`);
+      if (message === "get_item") {
         setTimeout(() => {
-          getItem();
+          getItem(message);
         }, 1000);
       }
       if (message === "drop") {
@@ -391,7 +389,7 @@ function bindEvents(bot) {
     }
   });
 
-  async function getItem() {
+  async function getItem(item) {
     const chestToOpen = bot.findBlock({
       matching: ["ender_chest"].map((name) => mcData.blocksByName[name].id),
       maxDistance: 3,
@@ -400,7 +398,7 @@ function bindEvents(bot) {
     chest = await bot.openChest(chestToOpen);
     items = chest.containerItems();
 
-    withdrawItem("light_gray_shulker_box", 1, temp_nbt);
+    withdrawItem(item, 1, temp_nbt);
 
     return items;
   }
